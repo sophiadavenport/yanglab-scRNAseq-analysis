@@ -1,0 +1,6 @@
+# Ignore all log files
+*.log
+# Files
+intermediate/
+results/
+snakemake/
