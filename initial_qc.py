@@ -84,8 +84,8 @@ sc.pl.pca(
 sc.external.pp.scanorama_integrate(adata, key='batch')
 sc.external.pp.harmony_integrate(adata, key='batch') #adding to try to ensure that clusters look better
 
-sc.tl.leiden(adata, flavor="igraph", n_iterations=5)
 sc.pp.neighbors(adata, use_rep='X_pca_harmony') #use_rep='X_pca_harmony'
+sc.tl.leiden(adata, flavor="igraph", n_iterations=5)
 sc.tl.umap(adata)
 
 try:
