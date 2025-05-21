@@ -59,6 +59,9 @@ doublet_filter_shape=adata.shape
 sc.pl.scatter(adata, "total_counts", "n_genes_by_counts", color="pct_counts_mt", save='scatter_pctcountsmt_postfiltering.png')
 
 sc.pl.violin(adata, ["n_genes_by_counts", "total_counts", "pct_counts_mt"], jitter=0.4, multi_panel=True, size=0.1, save='violin_qc_metrics_postfiltering.png')
+for batch in list(adata.obs.batch.unique()): #violin plots for each batch individually
+    cur_adata=adata[adata.obs.batch==batch, :]
+    sc.pl.violin(cur_adata, ["n_genes_by_counts", "total_counts"], jitter=0.4, multi_panel=True, size=0.1, save=f"{batch}_violin_qc_metrics_postfiltering.png")
 
 adata.layers["counts"] = adata.X.copy()
 sc.pp.normalize_total(adata)
