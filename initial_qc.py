@@ -37,13 +37,8 @@ adata.var["hb"] = adata.var_names.str.contains("^HB[^(P)]")
 
 sc.pp.calculate_qc_metrics(adata, qc_vars=["mt", "ribo", "hb"], inplace=True, log1p=True)
 
-sc.pl.violin(
-    adata,
-    ["n_genes_by_counts", "total_counts", "pct_counts_mt"],
-    jitter=0.4,
-    multi_panel=True,
-    save='violin_qc_metrics.png'
-)
+sc.pl.violin(adata, ["n_genes_by_counts", "total_counts", "pct_counts_mt"], jitter=0.4, multi_panel=True, size=0.1, save='violin_qc_metrics.png')
+
 sc.pl.scatter(adata, "total_counts", "n_genes_by_counts", color="pct_counts_mt", save='scatter_pctcountsmt.png')
 
 sc.pp.filter_cells(adata, min_genes=200) #trying with 200 genes removed
@@ -63,6 +58,8 @@ doublet_filter_shape=adata.shape
 
 sc.pl.scatter(adata, "total_counts", "n_genes_by_counts", color="pct_counts_mt", save='scatter_pctcountsmt_postfiltering.png')
 
+sc.pl.violin(adata, ["n_genes_by_counts", "total_counts", "pct_counts_mt"], jitter=0.4, multi_panel=True, size=0.1, save='violin_qc_metrics_postfiltering.png')
+
 adata.layers["counts"] = adata.X.copy()
 sc.pp.normalize_total(adata)
 sc.pp.log1p(adata)
@@ -77,14 +74,7 @@ sc.pl.highly_variable_genes(adata, save='scatter_hv_genes.png')
 
 sc.tl.pca(adata)
 sc.pl.pca_variance_ratio(adata, n_pcs=50, log=True, save='pca_plot.png')
-sc.pl.pca(
-    adata,
-    color=["batch", "batch", "id", "id"],
-    dimensions=[(0, 1), (2, 3), (0, 1), (2, 3)],
-    ncols=2,
-    size=2,
-    save='pc_variation_plots.png'
-)
+sc.pl.pca(adata, color=["batch", "batch", "id", "id"], dimensions=[(0, 1), (2, 3), (0, 1), (2, 3)], ncols=2, size=2, save='pc_variation_plots.png')
 
 sc.external.pp.scanorama_integrate(adata, key='batch')
 sc.external.pp.harmony_integrate(adata, key='batch') #adding to try to ensure that clusters look better
@@ -94,9 +84,9 @@ sc.tl.leiden(adata, flavor="igraph", n_iterations=10)
 sc.tl.umap(adata)
 
 try:
-    u.create_umaps(
-    adata=adata, adata_name='Yang', colnames=['sample_id', 'genotype', 'age', 'batch', 'date_processed', "leiden", "log1p_total_counts", "pct_counts_mt", "log1p_n_genes_by_counts"], date='5_5'
-    )
+    u.create_umaps(adata=adata, adata_name='Yang', 
+                   colnames=['sample_id', 'genotype', 'age', 'batch', 'date_processed', "leiden", "log1p_total_counts", "pct_counts_mt", "log1p_n_genes_by_counts"], 
+                   date='5_5')
     e='no error'
 except Exception as err:
     print('error in create umaps')
