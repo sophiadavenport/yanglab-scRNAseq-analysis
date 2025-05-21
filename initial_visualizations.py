@@ -71,9 +71,9 @@ def plot_umap_highlight(adata, obs_column, highlight_color='blue', background_co
 plot_umap_highlight(adata, 'celltype_class')
 
 ####Writing Counts to Excel:
-with pd.ExcelWriter(args.excel, engine='xlsxwriter') as writer:
-    celltype_counts = adata.obs['celltype'].value_counts().reset_index()
-    celltype_counts.columns = ['celltype', 'count']
+with pd.ExcelWriter(args.excel) as writer:
+    celltype_counts = adata.obs['Celltype'].value_counts().reset_index()
+    celltype_counts.columns = ['Celltype', 'count']
     celltype_counts.to_excel(writer, sheet_name='Celltype_Counts', index=False)
 
     celltype_class_counts = adata.obs['celltype_class'].value_counts().reset_index()
