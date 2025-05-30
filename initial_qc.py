@@ -43,7 +43,7 @@ sc.pl.scatter(adata, "total_counts", "n_genes_by_counts", color="pct_counts_mt",
 
 sc.pp.filter_cells(adata, min_genes=200) #trying with 200 genes removed
 cell_filter_shape=adata.shape
-sc.pp.filter_cells(adata, max_genes=8000) #upper genes expressed limit
+sc.pp.filter_cells(adata, max_genes=6000) #upper genes expressed limit (for round 2 of filtering lowered to 6000)
 cell_filter_shape_upper=adata.shape
 sc.pp.filter_genes(adata, min_cells=100) #upping the number of cells required for genes to be expressed in (100)
 gene_filter_shape=adata.shape
@@ -102,7 +102,7 @@ with open(args.report, "w") as f:
     f.write(f"Initial Cells by Genes: {start_shape}\n")
     f.write(f"Max Raw Counts: {max_counts}\n")
     f.write(f"Shape after filtering out cells with less than 200 genes expressed: {cell_filter_shape} ({start_shape[0]-cell_filter_shape[0]} cells removed)\n")
-    f.write(f"Shape after filtering out cells with more than 8000 genes expressed: {cell_filter_shape_upper} ({cell_filter_shape[0]-cell_filter_shape_upper[0]} cells removed)\n")
+    f.write(f"Shape after filtering out cells with more than 6000 genes expressed: {cell_filter_shape_upper} ({cell_filter_shape[0]-cell_filter_shape_upper[0]} cells removed)\n")
     f.write(f"Shape after filtering out genes expressed in less than 100 cells: {gene_filter_shape} ({start_shape[1]-gene_filter_shape[1]} genes removed)\n")
     f.write(f"Shape after filtering out cells with over 5% mitochondrial genes: {mt_filter_shape} ({gene_filter_shape[0]-mt_filter_shape[0]} cells removed due to mt content)\n")
     f.write(f"Number of predicted doublets: {len(predicted_doublet_idx)} (Post doublet filter: {doublet_filter_shape})")

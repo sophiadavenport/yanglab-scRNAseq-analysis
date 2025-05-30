@@ -8,7 +8,7 @@ FIGURES_PATH=config['figures_path']
 
 rule all:
     input:
-        'results/qc_report.txt', f"{FIGURES_PATH}/results/annotation_vis/celltype_counts_batch.png", f"results/subtype_counts.xlsx"
+        'results2/qc_report.txt', f"{FIGURES_PATH}/results2/annotation_vis/celltype_counts_batch.png", f"results2/subtype_counts.xlsx"
 
 rule create_h5ad:
     input:
@@ -27,7 +27,7 @@ rule initial_qc:
         f"{DATA_DIR}/yang_scRNAseq.h5ad"
     output:
         formatted_h5ad=f"{DATA_DIR}/yang_scRNAseq_formatted.h5ad",
-        qc_report="results/qc_report.txt"
+        qc_report="results2/qc_report.txt"
     conda:
         'envs/scanpy_env.yaml'
     shell:
@@ -51,11 +51,11 @@ rule visualize_anno_qc:
     input:
         adata=f"{DATA_DIR}/yang_scRNAseq_formatted_annotated.h5ad"
     output:
-        celltype_counts=f"{FIGURES_PATH}/results/annotation_vis/celltype_counts_batch.png", counts_excel=f"results/subtype_counts.xlsx"
+        celltype_counts=f"{FIGURES_PATH}/results2/annotation_vis/celltype_counts_batch.png", counts_excel=f"results2/subtype_counts.xlsx"
     conda:
         'envs/scanpy_env.yaml'
     params:
-        save_folder=f"{FIGURES_PATH}/results/annotation_vis/"
+        save_folder=f"{FIGURES_PATH}/results2/annotation_vis/"
     shell:
         """
         python initial_visualizations.py --adata {input.adata} --save_folder {params.save_folder} --celltype_counts {output.celltype_counts} --excel {output.counts_excel}
