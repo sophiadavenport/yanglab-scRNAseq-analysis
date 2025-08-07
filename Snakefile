@@ -5,29 +5,49 @@ DATA_DIR=config["data_dir"]
 METADATA=config["metadata_path"]
 MOUSE_REF=config["mouse_brain_reference"]
 FIGURES_PATH=config['figures_path']
+CELLBENDER_PARAMS=config['cellbender_params']
+SAMPLES = config['samples']
 
 rule all:
     input:
-        'results2/qc_report.txt', f"{FIGURES_PATH}/results2/annotation_vis/celltype_counts_batch.png", f"results2/subtype_counts.xlsx"
+        f"{DATA_DIR}/yang_scRNAseq_mapped.h5ad", 'results/qc_report.txt'
+
+rule remove_ambient_rna:
+    input:
+        matrix_dir = f"{DATA_DIR}/sample_mtxs/{{sample}}_filtered_feature_bc_matrix"
+    output:
+        h5 = "results/cellbender/{sample}_cellbender.h5"
+    params:
+        total_droplets = lambda wildcards: CELLBENDER_PARAMS[wildcards.sample]["total_droplets"],
+        expected_cells = lambda wildcards: CELLBENDER_PARAMS[wildcards.sample]["expected_cells"]
+    threads: 8
+    resources:
+        mem_mb=100000
+    conda:
+        "envs/cellbender_env.yaml"
+    shell:
+        """
+        cellbender remove-background --input {input.matrix_dir} --output {output.h5} --expected-cells {params.expected_cells} \
+            --total-droplets-included {params.total_droplets} --cuda --fpr 0.01
+        """
 
 rule create_h5ad:
     input:
-       data=DATA, metadata=METADATA
+       data=expand("results/cellbender/{sample}_cellbender_filtered.h5", sample=SAMPLES), metadata=METADATA
     output:
-        f"{DATA_DIR}/yang_scRNAseq.h5ad"
+        f"{DATA_DIR}/yang_scRNAseq_cellbender.h5ad"
     conda:
         "envs/scanpy_env.yaml"
     shell:
         """
-        python create_countsmtx.py --data_dir {input.data} --meta {input.metadata} --output {output}
+        python create_countsmtx.py --data_dir "results/cellbender" --meta {input.metadata} --output {output}
         """
 
 rule initial_qc:
     input:
-        f"{DATA_DIR}/yang_scRNAseq.h5ad"
+        f"{DATA_DIR}/yang_scRNAseq_cellbender.h5ad"
     output:
-        formatted_h5ad=f"{DATA_DIR}/yang_scRNAseq_formatted.h5ad",
-        qc_report="results2/qc_report.txt"
+        formatted_h5ad=f"{DATA_DIR}/yang_scRNAseq_formatted.h5ad", qc_report="results/qc_report.txt"
     conda:
         'envs/scanpy_env.yaml'
     shell:
@@ -39,24 +59,10 @@ rule map_annotations:
     input:
         reference=MOUSE_REF, formatted_h5ad=f"{DATA_DIR}/yang_scRNAseq_formatted.h5ad"
     output:
-        annotated=f"{DATA_DIR}/yang_scRNAseq_formatted_annotated.h5ad"
+        annotated=f"{DATA_DIR}/yang_scRNAseq_mapped.h5ad"
     conda:
         'envs/tacco.yaml'
     shell:
         """
         python cell_annotations.py --reference {input.reference} --formatted {input.formatted_h5ad} --output {output.annotated}
-        """
-    
-rule visualize_anno_qc:
-    input:
-        adata=f"{DATA_DIR}/yang_scRNAseq_formatted_annotated.h5ad"
-    output:
-        celltype_counts=f"{FIGURES_PATH}/results2/annotation_vis/celltype_counts_batch.png", counts_excel=f"results2/subtype_counts.xlsx"
-    conda:
-        'envs/scanpy_env.yaml'
-    params:
-        save_folder=f"{FIGURES_PATH}/results2/annotation_vis/"
-    shell:
-        """
-        python initial_visualizations.py --adata {input.adata} --save_folder {params.save_folder} --celltype_counts {output.celltype_counts} --excel {output.counts_excel}
         """
