@@ -15,9 +15,13 @@ args = parser.parse_args()
 adata=sc.read_h5ad(args.formatted)
 
 adata.layers['normalized_counts']=adata.X
-adata.X=adata.layers['counts'] #resetting to raw counts since TACCO requires it
+adata.X=adata.layers['counts'] #resetting to raw counts
+adata.X=adata.X.astype('float32')
 
-reference_adata=sc.read_h5ad(args.reference)
+reference_adata=sc.read_h5ad(args.reference) #automatically loaded as counts and float32
+subclass_counts=reference_adata.obs.subclass.value_counts()
+keep_subclass=pd.DataFrame(subclass_counts[subclass_counts > 100]).index.tolist()
+reference_adata=reference_adata[reference_adata.obs.subclass.isin(keep_subclass), :]
 
 tc.tl.annotate(adata=adata, reference=reference_adata, annotation_key='subclass', result_key='Celltype')
 
