@@ -1,0 +1,16 @@
+name: scanpy_env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - python=3.10
+  - scanpy=1.9.8
+  - anndata
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - louvain
+  - leidenalg

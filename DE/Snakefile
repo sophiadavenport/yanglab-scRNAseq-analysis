@@ -1,0 +1,52 @@
+use_conda = True
+
+adata=config["adata_path"]
+celltypes=["Astrocytes", "Oligodendrocytes", "Neurons_Immature", "Neurons_Glutamatergic", "Immature_Cells", "Vascular_Cells", "Immune_Cells", "Ependymal_Cells", "Neurons_Gabaergic"]
+
+rule all:
+    input:
+        expand("results/{celltype}_edger_results.csv", celltype=celltypes), expand("reports/summary.txt")
+
+rule adata_to_mtx:
+    input:
+        adata=adata
+    output:
+        counts=temp("intermediate/{celltype}_counts.csv"), metadata=temp("intermediate/{celltype}_metadata.csv")
+    threads: 4
+    params:
+        celltype_col="Manual_Celltype_Class", donor_col="sample_id", batch_col="batch", metadata_keep_cols="age", condition="genotype"
+    conda:
+        "envs/scanpy.yaml"
+    shell:
+        """
+        python adata_R_format.py --adata {input.adata} --current_celltype {wildcards.celltype} --condition_col {params.condition} --celltype_col {params.celltype_col} --donor_col {params.donor_col} --batch_col {params.batch_col} --counts_path {output.counts} --metadata_path {output.metadata} --metadata_keep_cols {params.metadata_keep_cols}
+        """
+
+rule run_edger:
+    input:
+        counts="intermediate/{celltype}_counts.csv", metadata="intermediate/{celltype}_metadata.csv"
+    output:
+        "results/{celltype}_edger_results.csv"
+    threads: 4
+    params:
+        condition="Condition", metadata_covs=['age']
+    conda:
+        "envs/edger.yaml"
+    shell:
+        """
+        Rscript run_edgeR.R {input.counts} {input.metadata} {params.condition} {output} {params.metadata_covs}
+        """
+
+rule summarize_DEG_results: #also makes untracked heatmaps
+    input:
+        celltype_edger=expand("results/{celltype}_edger_results.csv", celltype=celltypes)
+    output:
+        report="reports/summary.txt"
+    params:
+        figures="results/figures"
+    conda:
+        "envs/scanpy.yaml"
+    shell:
+        """
+        python summarize_DEG.py --input_files {input.celltype_edger} --report {output.report} --figures_dir {params.figures}
+        """

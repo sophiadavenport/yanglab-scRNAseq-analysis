@@ -1,0 +1,10 @@
+name: edger_env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - r-base=4.2
+  - r-tidyverse
+  - bioconductor-limma
+  - bioconductor-edger
