@@ -20,12 +20,13 @@ save_directory=args.save_directory
 os.makedirs(save_directory, exist_ok=True)
 
 adata=sc.read_h5ad(args.adata_path)
+adata=adata[adata.obs[args.celltype_column]!='Drop']
 
 def run_scanpro(adata, clusters, condition, cluster_name, samples):
     out=scanpro(adata,clusters_col=clusters,conds_col=condition,samples_col=samples, robust=True, n_reps=10)
     
     #Scanpro Scatterplot results:
-    scatterplotpath=os.path.join(save_directory,"proportions_scatterplot.png")
+    scatterplotpath=os.path.join(save_directory,"proportions_celltypebroad_scatterplot.png")
     out.plot(save=scatterplotpath)
     boxplotpath=os.path.join(save_directory,"proportions_boxplot.png")
     out.plot(kind='boxplot', save=boxplotpath)
@@ -42,7 +43,7 @@ def run_scanpro(adata, clusters, condition, cluster_name, samples):
     plt.title(f'Count of {cluster_name} per {condition.replace("_", " ").title()}')
     plt.legend(title=cluster_name, bbox_to_anchor=(1.05, 1), loc='best', fontsize=6)
     plt.tight_layout()
-    barplotpath=os.path.join(save_directory,"celltypecounts_barplot.png")
+    barplotpath=os.path.join(save_directory,"celltypebroadcounts_barplot.png")
     plt.savefig(barplotpath)
     plt.close()
 
@@ -54,7 +55,7 @@ def run_scanpro(adata, clusters, condition, cluster_name, samples):
     plt.title(f'Proportion of Cells per {condition.replace("_", " ").title()}')
     plt.legend(title=cluster_name, bbox_to_anchor=(1.05, 1), loc='best', fontsize=6)
     plt.tight_layout()
-    percentbarplotpath=os.path.join(save_directory,"proportioncelltypes_barplot.png")
+    percentbarplotpath=os.path.join(save_directory,"proportioncelltypesbroad_barplot.png")
     plt.savefig(percentbarplotpath)
     plt.close()
 
@@ -67,7 +68,7 @@ conditions=adata.obs[args.condition_column].unique()
 
 pairwise_results={}
 for cond_pair in itertools.combinations(conditions, 2):
-    out=scanpro(adata=adata, clusters_col=args.celltype_column, samples_col=args.samples_column, conds_col=args.condition_column,conditions=list(cond_pair), robust=True, n_reps=10)
+    out=scanpro(adata, clusters_col=args.celltype_column, samples_col=args.samples_column, conds_col=args.condition_column,conditions=list(cond_pair), robust=True, n_reps=10)
 
     pairwise_results[f"{cond_pair[0]}_vs_{cond_pair[1]}"]=out.results
 
